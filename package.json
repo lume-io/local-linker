@@ -1,0 +1,37 @@
+{
+  "name": "@lume-io/local-linker",
+  "version": "0.1.0",
+  "description": "A magical tool for managing local package dependencies",
+  "main": "index.js",
+  "bin": {
+    "local-linker": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "npm",
+    "yarn",
+    "pnpm",
+    "link",
+    "local",
+    "dependency",
+    "development"
+  ],
+  "author": "Hugo Leonardo Simas Mendes",
+  "license": "MIT",
+  "dependencies": {
+    "chokidar": "^3.5.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lume-io/local-linker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lume-io/local-linker/issues"
+  },
+  "homepage": "https://github.com/lume-io/local-linker#readme"
+}
