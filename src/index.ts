@@ -8,9 +8,24 @@ import {
 } from "./package-manager";
 import { linkAllPackages, linkRecursiveDependencies } from "./linker";
 import { watchPackages } from "./watcher";
+import { execSync } from "child_process";
+import path from "path";
+import * as fs from "fs";
 
 function main(): void {
   const args = process.argv.slice(2);
+
+  // Show version if requested
+  if (args.includes("--version") || args.includes("-v")) {
+    showVersion();
+    return;
+  }
+
+  // Handle update command
+  if (args.includes("update") || args.includes("--update")) {
+    updateLocalLinker();
+    return;
+  }
 
   // Show help if requested
   if (args.includes("--help") || args.includes("-h")) {
@@ -113,6 +128,73 @@ ${colors.yellow}Additional Configuration:${colors.reset}
     }
   }
   `);
+}
+
+/**
+ * Show the current version of local-linker
+ */
+function showVersion(): void {
+  try {
+    // Find the package.json file - look in the directory where the script is located
+    const packageJsonPath = path.resolve(__dirname, "..", "package.json");
+
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+      console.log(`@lume-io/local-linker v${packageJson.version}`);
+    } else {
+      // Fallback if package.json can't be found
+      console.log("Version information not available");
+    }
+  } catch (error) {
+    console.error(
+      "Error reading version information:",
+      (error as Error).message
+    );
+  }
+}
+
+/**
+ * Update the local-linker package to the latest version
+ */
+function updateLocalLinker(): void {
+  const logger = new Logger(true);
+  logger.info("Checking for updates...");
+
+  try {
+    // Determine which package manager installed the tool
+    const packageName = "@lume-io/local-linker";
+    const isGloballyInstalled =
+      process.env._ && process.env._.includes("local-linker");
+
+    if (isGloballyInstalled) {
+      // Try to detect which package manager was used to install the tool
+      const whichResult = execSync("which local-linker").toString().trim();
+
+      let updateCommand: string;
+      if (whichResult.includes("yarn")) {
+        updateCommand = `yarn global add ${packageName}@latest`;
+      } else if (whichResult.includes("pnpm")) {
+        updateCommand = `pnpm add -g ${packageName}@latest`;
+      } else {
+        // Default to npm
+        updateCommand = `npm install -g ${packageName}@latest`;
+      }
+
+      logger.info(`Updating using command: ${updateCommand}`);
+      execSync(updateCommand, { stdio: "inherit" });
+      logger.success("Update completed successfully!");
+    } else {
+      logger.info(
+        "It seems you are running local-linker directly from a local directory."
+      );
+      logger.info(`To update, run: npm install -g ${packageName}@latest`);
+    }
+  } catch (error) {
+    logger.error(`Update failed: ${(error as Error).message}`);
+    logger.info(
+      `You can manually update with: npm install -g @lume-io/local-linker@latest`
+    );
+  }
 }
 
 // Run the main function
