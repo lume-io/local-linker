@@ -6,51 +6,9 @@ import {
   detectPackageManager,
   PackageManagerCommands,
 } from "./package-manager";
-import { linkAllPackages } from "./linker";
+import { linkAllPackages, linkRecursiveDependencies } from "./linker";
 import { watchPackages } from "./watcher";
 
-/**
- * Show help message
- */
-function showHelp(): void {
-  console.log(`
-${colors.cyan}@lume-io/local-linker${colors.reset}
-
-A magical tool for easily linking local packages in your Node.js projects.
-
-${colors.yellow}Usage:${colors.reset}
-  local-linker               Link all packages defined in .localpackages
-  local-linker --watch, -w   Link packages and watch for changes
-  local-linker --deps, -d    Resolve dependencies and build in the correct order
-  local-linker --help, -h    Show this help message
-
-${colors.yellow}Configuration:${colors.reset}
-  Create a .localpackages file in your project root with the format:
-  
-  package-name = /path/to/package [build-command] [watch:[pattern1,pattern2]]
-  
-  Examples:
-  ui-library = ../ui-lib
-  api-client = /path/to/api-client [npm run build:dev]
-  utils = ../utils [pnpm compile] [watch:src/**/*.ts,tests/**/*.ts]
-  
-  Lines starting with # are treated as comments.
-  
-${colors.yellow}Additional Configuration:${colors.reset}
-  You can also configure options in your package.json:
-  
-  {
-    "localLinker": {
-      "useSpinner": true,
-      "resolveDependencies": true
-    }
-  }
-  `);
-}
-
-/**
- * Main function
- */
 function main(): void {
   const args = process.argv.slice(2);
 
@@ -90,6 +48,12 @@ function main(): void {
     args.includes("-d") ||
     toolConfig.resolveDependencies === true;
 
+  // Determine if we should recursively link dependencies
+  const recursive =
+    args.includes("--recursive") ||
+    args.includes("-r") ||
+    toolConfig.recursiveLinks === true;
+
   // Link all packages
   const success = linkAllPackages(
     localPackages,
@@ -98,10 +62,57 @@ function main(): void {
     resolveDependencies
   );
 
-  // Start watch mode if requested
-  if (success && (args.includes("--watch") || args.includes("-w"))) {
+  // Handle recursive linking if requested
+  if (success && recursive) {
+    linkRecursiveDependencies(localPackages, pmCommands, logger).then(() => {
+      // Start watch mode if requested
+      if (args.includes("--watch") || args.includes("-w")) {
+        watchPackages(localPackages, pmCommands, logger);
+      }
+    });
+  } else if (success && (args.includes("--watch") || args.includes("-w"))) {
+    // Start watch mode if requested
     watchPackages(localPackages, pmCommands, logger);
   }
+}
+
+// Also update the help message:
+function showHelp(): void {
+  console.log(`
+${colors.cyan}@lume-io/local-linker${colors.reset}
+
+A magical tool for easily linking local packages in your Node.js projects.
+
+${colors.yellow}Usage:${colors.reset}
+  local-linker               Link all packages defined in .localpackages
+  local-linker --watch, -w   Link packages and watch for changes
+  local-linker --deps, -d    Resolve dependencies and build in the correct order
+  local-linker --recursive, -r  Recursively link dependencies in all linked packages
+  local-linker --help, -h    Show this help message
+
+${colors.yellow}Configuration:${colors.reset}
+  Create a .localpackages file in your project root with the format:
+  
+  package-name = /path/to/package [build-command] [watch:[pattern1,pattern2]]
+  
+  Examples:
+  ui-library = ../ui-lib
+  api-client = /path/to/api-client [npm run build:dev]
+  utils = ../utils [pnpm compile] [watch:src/**/*.ts,tests/**/*.ts]
+  
+  Lines starting with # are treated as comments.
+  
+${colors.yellow}Additional Configuration:${colors.reset}
+  You can also configure options in your package.json:
+  
+  {
+    "localLinker": {
+      "useSpinner": true,
+      "resolveDependencies": true,
+      "recursiveLinks": true
+    }
+  }
+  `);
 }
 
 // Run the main function

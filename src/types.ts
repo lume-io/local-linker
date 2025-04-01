@@ -36,4 +36,5 @@ export interface PackageInfo {
 export interface ToolConfig {
   useSpinner?: boolean;
   resolveDependencies?: boolean;
+  recursiveLinks?: boolean;
 }

@@ -61,6 +61,12 @@ local-linker --watch --deps
 
 # Disable spinners for CI environments
 local-linker --no-spinner
+
+# Recursively link dependencies in nested packages
+local-linker --recursive
+
+# All options can be combined
+local-linker --deps --recursive --watch
 ```
 
 ## Features
@@ -74,6 +80,7 @@ local-linker --no-spinner
 - **Custom Watch Patterns**: Define exactly which files to watch per package
 - **Dependency Resolution**: Build packages in the correct order based on their dependencies
 - **Progress Spinners**: Visual feedback during long operations
+- **Recursive Dependency Linking**: Automatically link dependencies in all linked packages
 - **TypeScript Support**: Built with TypeScript for better maintainability
 
 ## How It Works
@@ -109,7 +116,8 @@ You can configure additional options in your project's `package.json`:
 {
   "localLinker": {
     "useSpinner": true,
-    "resolveDependencies": true
+    "resolveDependencies": true,
+    "recursiveLinks": true
   }
 }
 ```
@@ -118,6 +126,7 @@ You can configure additional options in your project's `package.json`:
 
 - **useSpinner**: Enable or disable progress spinners (default: true)
 - **resolveDependencies**: Automatically resolve and order packages by their dependencies (default: false)
+- **recursiveLinks**: Automatically link dependencies in nested packages (default: false)
 
 ## Contributing
 
