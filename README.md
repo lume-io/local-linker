@@ -108,6 +108,35 @@ Local Linker:
 
 `@lume-io/local-linker` is part of the lume-io organization, focused on creating developer tools that simplify workflows and enhance productivity. Our goal is to build tools that feel magical - they just work without complex configuration or steep learning curves.
 
+## Best Practices
+
+### Managing Dependencies
+
+When using local-linker, we recommend adding your local packages to both places:
+
+```json
+// package.json
+{
+  "dependencies": {
+    "ui-library": "^1.0.0"
+  }
+}
+```
+
+```
+# .localpackages
+ui-library = ../path/to/ui-library
+```
+
+This dual approach provides several benefits:
+
+1. **Development**: The local version is used during development (via local-linker)
+2. **Production**: The published version is used in production builds
+3. **Collaboration**: Team members without local copies can still run the project
+4. **CI/CD**: Build pipelines will use the published version automatically
+
+This pattern creates a seamless workflow between development and production environments.
+
 ## Advanced Configuration
 
 You can configure additional options in your project's `package.json`:
