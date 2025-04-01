@@ -1,7 +1,10 @@
 import * as path from "path";
 import { LocalPackages, PackageConfig, PackageInfo } from "./types";
 import { Logger } from "./logger";
-import { PackageManagerCommands } from "./package-manager";
+import {
+  detectPackageManagerForPath,
+  PackageManagerCommands,
+} from "./package-manager";
 import { buildPackage } from "./builder";
 import { buildDependencyGraph, getTopologicalOrder } from "./dependency-graph";
 import { CONFIG_FILE, readConfig } from "./config";
@@ -13,21 +16,31 @@ import * as fs from "fs";
 export function linkPackage(
   packageName: string,
   config: LocalPackages[string],
-  pmCommands: PackageManagerCommands,
+  mainPmCommands: PackageManagerCommands,
   logger: Logger
 ): boolean {
   const absPath = path.isAbsolute(config.path)
     ? config.path
     : path.resolve(process.cwd(), config.path);
 
-  // Create a global link in the package
-  const globalLinkSuccess = pmCommands.createGlobalLink(absPath, packageName);
+  // Detect package manager specific to this package
+  const packageManager = detectPackageManagerForPath(absPath);
+  const packagePmCommands =
+    packageManager === mainPmCommands.getPackageManager()
+      ? mainPmCommands
+      : new PackageManagerCommands(packageManager, logger);
+
+  // Create a global link in the package using its own package manager
+  const globalLinkSuccess = packagePmCommands.createGlobalLink(
+    absPath,
+    packageName
+  );
   if (!globalLinkSuccess) {
     return false;
   }
 
-  // Link the global package to the current project
-  return pmCommands.linkToProject(packageName);
+  // Link the global package to the current project using the main project's package manager
+  return mainPmCommands.linkToProject(packageName);
 }
 
 /**

@@ -17,6 +17,20 @@ export function detectPackageManager(): PackageManager {
 }
 
 /**
+ * Detect the package manager for a specific directory path
+ */
+export function detectPackageManagerForPath(
+  packagePath: string
+): PackageManager {
+  if (fs.existsSync(path.resolve(packagePath, "pnpm-lock.yaml"))) {
+    return "pnpm";
+  } else if (fs.existsSync(path.resolve(packagePath, "yarn.lock"))) {
+    return "yarn";
+  }
+  return "npm"; // Default to npm
+}
+
+/**
  * Helper class to execute package manager commands
  */
 export class PackageManagerCommands {
@@ -26,6 +40,13 @@ export class PackageManagerCommands {
   constructor(packageManager: PackageManager, logger: Logger) {
     this.packageManager = packageManager;
     this.logger = logger;
+  }
+
+  /**
+   * Get the package manager type
+   */
+  getPackageManager(): PackageManager {
+    return this.packageManager;
   }
 
   /**

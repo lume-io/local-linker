@@ -2,7 +2,10 @@ import * as fs from "fs";
 import * as path from "path";
 import { PackageConfig } from "./types";
 import { Logger } from "./logger";
-import { PackageManagerCommands } from "./package-manager";
+import {
+  detectPackageManagerForPath,
+  PackageManagerCommands,
+} from "./package-manager";
 
 /**
  * Build a package using its build script or a custom command
@@ -10,7 +13,7 @@ import { PackageManagerCommands } from "./package-manager";
 export function buildPackage(
   packageName: string,
   config: PackageConfig,
-  pmCommands: PackageManagerCommands,
+  mainPmCommands: PackageManagerCommands,
   logger: Logger
 ): boolean {
   const absPath = path.isAbsolute(config.path)
@@ -50,5 +53,13 @@ export function buildPackage(
   }
 
   // Run build command
-  return pmCommands.runBuild(absPath, packageName, config.buildCommand);
+  // Detect package manager specific to this package
+  const packageManager = detectPackageManagerForPath(absPath);
+  const packagePmCommands =
+    packageManager === mainPmCommands.getPackageManager()
+      ? mainPmCommands
+      : new PackageManagerCommands(packageManager, logger);
+
+  // Run build command using the package's own package manager
+  return packagePmCommands.runBuild(absPath, packageName, config.buildCommand);
 }
