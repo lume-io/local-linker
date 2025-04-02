@@ -103,6 +103,8 @@ ${colors.yellow}Usage:${colors.reset}
   local-linker --watch, -w   Link packages and watch for changes
   local-linker --deps, -d    Resolve dependencies and build in the correct order
   local-linker --recursive, -r  Recursively link dependencies in all linked packages
+  local-linker update        Update local-linker to the latest version
+  local-linker --version, -v Show the current version
   local-linker --help, -h    Show this help message
 
 ${colors.yellow}Configuration:${colors.reset}

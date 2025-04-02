@@ -58,12 +58,15 @@ export class PackageManagerCommands {
     try {
       let command: string;
 
+      // Get the full path to the package manager binary
+      const pmPath = this.getPackageManagerPath();
+
       if (this.packageManager === "yarn") {
-        command = `cd "${packagePath}" && yarn link`;
+        command = `cd "${packagePath}" && ${pmPath} link`;
       } else if (this.packageManager === "pnpm") {
-        command = `cd "${packagePath}" && pnpm link --global`;
+        command = `cd "${packagePath}" && ${pmPath} link --global`;
       } else {
-        command = `cd "${packagePath}" && npm link`;
+        command = `cd "${packagePath}" && ${pmPath} link`;
       }
 
       execSync(command, { stdio: "ignore" });
@@ -77,6 +80,21 @@ export class PackageManagerCommands {
     }
   }
 
+  // Helper method to get the full path to the package manager (in case project uses volta, nvm, etc)
+  private getPackageManagerPath(): string {
+    try {
+      // Use 'which' on Unix-like systems or 'where' on Windows
+      const whichCmd = process.platform === "win32" ? "where" : "which";
+      return execSync(`${whichCmd} ${this.packageManager}`).toString().trim();
+    } catch (error) {
+      // If the command fails, fall back to just using the name
+      this.logger.warn(
+        `Could not find path for ${this.packageManager}, using default`
+      );
+      return this.packageManager;
+    }
+  }
+
   /**
    * Link a globally-linked package to the current project
    */
@@ -86,12 +104,15 @@ export class PackageManagerCommands {
     try {
       let command: string;
 
+      // Get the full path to the package manager binary
+      const pmPath = this.getPackageManagerPath();
+
       if (this.packageManager === "yarn") {
-        command = `yarn link "${packageName}"`;
+        command = `${pmPath} link "${packageName}"`;
       } else if (this.packageManager === "pnpm") {
-        command = `pnpm link --global "${packageName}"`;
+        command = `${pmPath} link --global "${packageName}"`;
       } else {
-        command = `npm link "${packageName}"`;
+        command = `${pmPath} link "${packageName}"`;
       }
 
       execSync(command, { stdio: "ignore" });
@@ -113,7 +134,9 @@ export class PackageManagerCommands {
     packageName: string,
     customCommand?: string
   ): boolean {
-    const defaultCommand = `${this.packageManager} run build`;
+    // Get the full path to the package manager binary
+    const pmPath = this.getPackageManagerPath();
+    const defaultCommand = `${pmPath} run build`;
     const buildCommand = customCommand || defaultCommand;
 
     this.logger.start(`Building ${packageName} using '${buildCommand}'...`);
