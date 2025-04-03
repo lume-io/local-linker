@@ -64,7 +64,7 @@ export class PackageManagerCommands {
       if (this.packageManager === "yarn") {
         command = `cd "${packagePath}" && ${pmPath} link`;
       } else if (this.packageManager === "pnpm") {
-        command = `cd "${packagePath}" && ${pmPath} link --global`;
+        command = `cd "${packagePath}" && ${pmPath} link`;
       } else {
         command = `cd "${packagePath}" && ${pmPath} link`;
       }
@@ -110,7 +110,7 @@ export class PackageManagerCommands {
       if (this.packageManager === "yarn") {
         command = `${pmPath} link "${packageName}"`;
       } else if (this.packageManager === "pnpm") {
-        command = `${pmPath} link --global "${packageName}"`;
+        command = `${pmPath} link "${packageName}"`;
       } else {
         command = `${pmPath} link "${packageName}"`;
       }
